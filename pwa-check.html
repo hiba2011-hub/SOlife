@@ -1,0 +1,477 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#6c5ce7" />
+    <title>LifeOS — install check</title>
+    <style>
+      :root {
+        --bg: #f5f6fa;
+        --surface: #fff;
+        --text: #17191f;
+        --muted: #6b7280;
+        --line: #e8eaf0;
+        --ok: #1f9d63;
+        --warn: #b7791f;
+        --bad: #cf3b4c;
+        --accent: #6c5ce7;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        padding: 18px 14px 60px;
+        font: 15px/1.5 -apple-system, system-ui, "Segoe UI", Roboto, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+      }
+      .wrap { max-width: 640px; margin: 0 auto; }
+      h1 { font-size: 22px; margin: 0 0 4px; }
+      .sub { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+      .verdict {
+        padding: 16px;
+        border-radius: 14px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        margin-bottom: 14px;
+      }
+      .verdict strong { display: block; font-size: 17px; margin-bottom: 6px; }
+      .verdict p { margin: 0; font-size: 13px; color: var(--muted); }
+      .verdict.ok { border-left: 5px solid var(--ok); }
+      .verdict.warn { border-left: 5px solid var(--warn); }
+      .verdict.bad { border-left: 5px solid var(--bad); }
+      .card {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 14px;
+      }
+      .card > h2 {
+        font-size: 12px;
+        letter-spacing: 1.2px;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin: 0;
+        padding: 13px 15px;
+        border-bottom: 1px solid var(--line);
+      }
+      .row {
+        display: flex;
+        gap: 11px;
+        padding: 12px 15px;
+        border-bottom: 1px solid var(--line);
+        align-items: flex-start;
+      }
+      .row:last-child { border-bottom: 0; }
+      .dot {
+        flex: none;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 700;
+        color: #fff;
+        margin-top: 1px;
+      }
+      .dot.ok { background: var(--ok); }
+      .dot.warn { background: var(--warn); }
+      .dot.bad { background: var(--bad); }
+      .dot.run { background: #c3c8d4; }
+      .row .body { min-width: 0; flex: 1; }
+      .row .name { font-weight: 600; font-size: 14px; }
+      .row .detail { font-size: 12.5px; color: var(--muted); margin-top: 3px; word-break: break-word; }
+      .row .fix {
+        font-size: 12.5px;
+        margin-top: 5px;
+        padding: 8px 10px;
+        border-radius: 9px;
+        background: #fdf6e7;
+        border: 1px solid #f2e3bd;
+      }
+      pre {
+        margin: 0;
+        padding: 14px 15px;
+        font-size: 11.5px;
+        line-height: 1.5;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #4a5060;
+      }
+      button {
+        font: inherit;
+        font-weight: 600;
+        border: 0;
+        border-radius: 11px;
+        padding: 12px 15px;
+        background: var(--accent);
+        color: #fff;
+        cursor: pointer;
+        width: 100%;
+        margin-bottom: 9px;
+      }
+      button.ghost { background: #eceafd; color: var(--accent); }
+      a { color: var(--accent); }
+      .hint { font-size: 12.5px; color: var(--muted); margin: 0 0 14px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <h1>LifeOS — install check</h1>
+      <p class="sub">
+        Open this page <strong>on the phone</strong>, at the same address you use for
+        LifeOS. It reports what the browser sees.
+      </p>
+
+      <div class="verdict" id="verdict">
+        <strong>Running checks…</strong>
+        <p>&nbsp;</p>
+      </div>
+
+      <div class="card" id="installCard">
+        <h2>Installability</h2>
+        <div class="row" data-check="context">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">Secure context (HTTPS)</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+        <div class="row" data-check="webview">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">Real browser vs in-app WebView</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+        <div class="row" data-check="manifest">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">manifest.json reachable and valid</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+        <div class="row" data-check="icons">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">Icons (192px + 512px)</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+        <div class="row" data-check="sw">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">Service worker registered</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+        <div class="row" data-check="prompt">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">Install prompt offered by the browser</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+        <div class="row" data-check="installed">
+          <span class="dot run">•</span>
+          <div class="body">
+            <div class="name">Already running as an installed app</div>
+            <div class="detail">…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Raw details (copy this if you need help)</h2>
+        <pre id="raw">…</pre>
+      </div>
+
+      <button id="copyBtn" class="ghost" type="button">Copy report</button>
+      <button id="retryBtn" type="button">Run checks again</button>
+      <p class="hint">
+        Tip: if this page says the manifest is not reachable, the files did not
+        deploy to that address.
+      </p>
+    </div>
+
+    <script>
+      (function () {
+        "use strict";
+        var results = {};
+        var manifestData = null;
+        var promptFired = false;
+        var promptDismissed = false;
+
+        // The browser only fires this once, and possibly before/after our
+        // checks run, so watch for it the whole time the page is open.
+        window.addEventListener("beforeinstallprompt", function () {
+          promptFired = true;
+          paint("prompt", "ok", "Yes — the browser offered a one-tap install.", "");
+          refreshVerdict();
+        });
+        window.addEventListener("appinstalled", function () {
+          paint("installed", "ok", "It just got installed from this page.", "");
+        });
+
+        function paint(key, state, detail, fix) {
+          results[key] = { state: state, detail: detail, fix: fix || "" };
+          var row = document.querySelector('[data-check="' + key + '"]');
+          if (!row) return;
+          var dot = row.querySelector(".dot");
+          dot.className = "dot " + state;
+          dot.textContent = state === "ok" ? "✓" : state === "warn" ? "!" : state === "bad" ? "×" : "•";
+          row.querySelector(".detail").textContent = detail;
+          var existing = row.querySelector(".fix");
+          if (existing) existing.remove();
+          if (fix) {
+            var p = document.createElement("div");
+            p.className = "fix";
+            p.textContent = fix;
+            row.querySelector(".body").appendChild(p);
+          }
+        }
+
+        function verdict(state, title, line) {
+          var v = document.getElementById("verdict");
+          v.className = "verdict " + state;
+          v.querySelector("strong").textContent = title;
+          v.querySelector("p").textContent = line;
+        }
+
+        function refreshVerdict() {
+          if (results.context && results.context.state === "bad") {
+            verdict("bad", "This page is not on HTTPS", "The browser will never allow installation. Use the https:// address.");
+            return;
+          }
+          if (results.webview && results.webview.state === "bad") {
+            verdict("bad", "You are inside an in-app browser", "Installation is blocked here. Open this address in Chrome itself (see the fix below).");
+            return;
+          }
+          if (results.manifest && results.manifest.state === "bad") {
+            verdict("bad", "manifest.json is missing", "The app files are not deployed at this address, so the browser sees no app to install.");
+            return;
+          }
+          if (results.installed && results.installed.state === "ok") {
+            verdict("ok", "LifeOS is already installed", "You are running the installed app — nothing more to do.");
+            return;
+          }
+          if (results.sw && results.sw.state === "bad") {
+            verdict("bad", "Service worker not registered", "Without it Chrome will not offer installation. Reload once, then check again.");
+            return;
+          }
+          if (promptFired) {
+            verdict("ok", "This browser offers installation", "Chrome has offered a one-tap install. Look for “Install app” in the ⋮ menu, or reload and use the in-app banner.");
+            return;
+          }
+          verdict(
+            "warn",
+            "Everything checks out, but Chrome has not offered install yet",
+            "This is usually a first-visit state: Chrome offers one-tap install only after it has cached the app. Reload this page once, then check the ⋮ menu again."
+          );
+        }
+
+        function fetchJson(url) {
+          return fetch(url, { cache: "no-store" }).then(function (r) {
+            if (!r.ok) throw new Error("HTTP " + r.status);
+            return r.json();
+          });
+        }
+
+        function measureImage(url) {
+          return new Promise(function (resolve) {
+            var img = new Image();
+            img.onload = function () {
+              resolve({ ok: true, w: img.naturalWidth, h: img.naturalHeight });
+            };
+            img.onerror = function () {
+              resolve({ ok: false });
+            };
+            img.src = url;
+          });
+        }
+
+        function isLikelyWebView() {
+          var ua = navigator.userAgent || "";
+          // Real Chrome Android identifies as "Chrome/…"; in-app browsers either
+          // strip that token or add their own, and Custom Tabs hide it via
+          // "wv" / the absence of a full Chrome version.
+          var inAppTokens = /(FBAN|FBAV|FB_IAB|Instagram|Line\/|WhatsApp|Twitter|TikTok|Snapchat|Pinterest|GSA\/|; wv\))/i;
+          if (inAppTokens.test(ua)) return true;
+          var isAndroid = /Android/i.test(ua);
+          var hasFullChrome = /Chrome\/\d+/i.test(ua) && !/\bwv\b/i.test(ua);
+          return isAndroid && !hasFullChrome;
+        }
+
+        function fullscreenMode() {
+          var modes = ["standalone", "minimal-ui", "fullscreen", "window-controls-overlay"];
+          for (var i = 0; i < modes.length; i++) {
+            try {
+              if (window.matchMedia("(display-mode: " + modes[i] + ")").matches) return modes[i];
+            } catch (e) {}
+          }
+          return null;
+        }
+
+        function run() {
+          var base = new URL(".", window.location.href).href;
+
+          // 1. secure context
+          var secure = window.isSecureContext && window.location.protocol === "https:";
+          var localhost = /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+          if (secure) paint("context", "ok", "Yes — " + window.location.origin, "");
+          else if (localhost) paint("context", "warn", "http://localhost — installable for testing, but not from a phone.", "");
+          else
+            paint("context", "bad", "No — this page is " + window.location.protocol + "//" + window.location.host,
+              "Phones can only install from an https:// address. Use your GitHub Pages / Netlify URL, not a local IP or a file.");
+
+          // 2. webview
+          if (isLikelyWebView()) {
+            paint("webview", "bad", "Looks like an in-app browser (WebView / Custom Tab).",
+              "Tap ⋮ and choose “Open in Chrome”. If that entry is missing, copy this address and paste it into the real Chrome app's address bar.");
+          } else {
+            paint("webview", "ok", "Looks like a standalone browser (" + (navigator.userAgent.split(") ")[0] || "?") + ")", "");
+          }
+
+          // 3. installed / display mode
+          var mode = fullscreenMode();
+          var iosStandalone = window.navigator.standalone === true;
+          if (mode || iosStandalone) {
+            paint("installed", "ok", "Yes — display-mode is " + (mode || "standalone") + ".", "");
+          } else {
+            paint("installed", "warn", "No — running in a browser tab.", "");
+          }
+
+          // 4. manifest
+          fetchJson(base + "manifest.json")
+            .then(function (m) {
+              manifestData = m;
+              var missing = ["name", "start_url", "display", "icons"].filter(function (k) {
+                return !m[k];
+              });
+              if (missing.length) {
+                paint("manifest", "bad", "Loaded, but missing: " + missing.join(", "),
+                  "Re-upload the corrected manifest.json."); 
+              } else if (["standalone", "fullscreen", "minimal-ui", "window-controls-overlay"].indexOf(m.display) < 0) {
+                paint("manifest", "bad", 'Reachable, but display is "' + m.display + '".', "display must be standalone or similar.");
+              } else {
+                paint("manifest", "ok", 'Reachable. name="' + m.name + '", display="' + m.display + '"', "");
+
+                // 5. icons
+                var icons = (m.icons || []).map(function (i) {
+                  return { src: new URL(i.src, base + "manifest.json").href, sizes: i.sizes, purpose: i.purpose || "any" };
+                });
+                if (!icons.length) {
+                  paint("icons", "bad", "The manifest lists no icons.", "Chrome needs a 192px and a 512px icon.");
+                  return;
+                }
+                return Promise.all(
+                  icons.map(function (i) {
+                    return measureImage(i.src).then(function (r) {
+                      return { declared: i.sizes, purpose: i.purpose, measured: r, src: i.src };
+                    });
+                  })
+                ).then(function (all) {
+                  var broken = all.filter(function (i) { return !i.measured.ok; });
+                  var bigEnough = all.some(function (i) {
+                    return i.measured.ok && i.measured.w >= 192 && /any/.test(i.purpose);
+                  });
+                  var summary = all
+                    .map(function (i) {
+                      return (i.measured.ok ? i.measured.w + "×" + i.measured.h : "FAILED") + " (" + i.purpose + ")";
+                    })
+                    .join(", ");
+                  if (broken.length) {
+                    paint("icons", "bad", "Could not load: " + broken.map(function (i) { return i.src; }).join(", "),
+                      "The icon files are missing from the deployment.");
+                  } else if (!bigEnough) {
+                    paint("icons", "bad", "Loaded, but none is >= 192px with purpose 'any': " + summary,
+                      "Add a 192px or 512px 'any' icon.");
+                  } else {
+                    paint("icons", "ok", summary, "");
+                  }
+                });
+              }
+            })
+            .catch(function (err) {
+              paint("manifest", "bad", "Could not load " + base + "manifest.json (" + err.message + ")",
+                "The file is not deployed at this address — check that manifest.json sits next to index.html.");
+            })
+            .then(function () {
+              // 6. service worker (independent of the manifest)
+              if (!("serviceWorker" in navigator)) {
+                paint("sw", "bad", "This browser has no service worker support.", "Use Chrome, Edge or Samsung Internet.");
+                return;
+              }
+              if (navigator.serviceWorker.controller) {
+                paint("sw", "ok", "Registered and controlling this page.", "");
+              } else {
+                return navigator.serviceWorker
+                  .getRegistrations()
+                  .then(function (regs) {
+                    if (regs && regs.length) {
+                      paint("sw", "warn", "Registered, but not controlling this page yet — reload once.", "");
+                    } else {
+                      paint("sw", "bad", "No registration found for this address.", "Reload this page once; if it stays red, sw.js is missing from the deployment.");
+                    }
+                  })
+                  .catch(function () {
+                    paint("sw", "warn", "Could not read the registration state.", "");
+                  });
+              }
+            })
+            .then(function () {
+              if (!promptFired) {
+                paint("prompt", "warn", "Not yet — Chrome has not offered a one-tap install on this page load.", "");
+              }
+              refreshVerdict();
+              writeRaw();
+            });
+        }
+
+        function writeRaw() {
+          var lines = [
+            "url            : " + window.location.href,
+            "origin         : " + window.location.origin,
+            "secureContext  : " + window.isSecureContext,
+            "displayMode    : " + (fullscreenMode() || "(browser tab)"),
+            "standalone(iOS): " + (window.navigator.standalone === true),
+            "sw controller  : " + !!(navigator.serviceWorker && navigator.serviceWorker.controller),
+            "beforeinstall  : " + promptFired,
+            "webviewGuess   : " + isLikelyWebView(),
+            "manifest       : " + (manifestData ? "loaded (" + (manifestData.icons || []).length + " icons)" : "not loaded"),
+            "userAgent      : " + navigator.userAgent,
+          ];
+          document.getElementById("raw").textContent = lines.join("\n");
+        }
+
+        document.getElementById("retryBtn").addEventListener("click", function () {
+          window.location.reload();
+        });
+        document.getElementById("copyBtn").addEventListener("click", function () {
+          var text = document.getElementById("raw").textContent;
+          var btn = this;
+          if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(function () {
+              btn.textContent = "Copied ✓";
+              setTimeout(function () { btn.textContent = "Copy report"; }, 1500);
+            });
+          } else {
+            var ta = document.createElement("textarea");
+            ta.value = text;
+            document.body.appendChild(ta);
+            ta.select();
+            document.execCommand("copy");
+            ta.remove();
+            btn.textContent = "Copied ✓";
+            setTimeout(function () { btn.textContent = "Copy report"; }, 1500);
+          }
+        });
+
+        run();
+      })();
+    </script>
+  </body>
+</html>

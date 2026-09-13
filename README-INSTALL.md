@@ -147,3 +147,46 @@ If Chrome's menu has no *Install app* entry:
 backdrop uses `z-index: 50`, so the banner floated above every dialog in LifeOS.
 The banner and update bar are now `45` / `46`, and the banner is taken down while
 the instructions dialog is open (restored when it closes).
+
+### "Install app" is not in my phone's Chrome menu at all
+
+There is a diagnostic page for exactly this. With the files deployed, open:
+
+```
+<your-url>/pwa-check.html
+```
+
+on the phone. It reports, in plain language, which of these is true:
+
+- whether the page is on **HTTPS** (installation is impossible otherwise)
+- whether you are in a **real browser or an in-app WebView / Custom Tab**
+- whether **manifest.json is actually reachable** at that address
+- whether the **icons load** and are large enough
+- whether the **service worker registered**
+- whether Chrome has **offered a one-tap install**
+- whether the app is **already installed**
+
+The two usual causes are:
+
+**1. An in-app browser (Custom Tab).** Links opened from WhatsApp, Gmail,
+Instagram, Facebook, TikTok or Telegram start a Custom Tab that looks exactly
+like Chrome but cannot install anything. **The tell: the ⋮ menu contains "Open in
+Chrome".** Tap it, or paste the address into the real Chrome app.
+
+**2. Already installed.** Chrome hides the install entry when the app is already
+on the device. Check the app drawer, or Android *Settings → Apps*.
+
+### Installing from a phone other than Android/Chrome
+
+| Phone | Path |
+|---|---|
+| iPhone / iPad | Safari → **Share** → **Add to Home Screen** (iOS has no install API) |
+| Android | Chrome → **⋮** → **Install app** |
+| Android, Samsung Internet | **☰** → **Add page to** → **Home screen** |
+| Android, Firefox | Not supported — use Chrome |
+
+### After deploying an update
+
+Bump `CACHE_VERSION` in `sw.js` (`"v4"` right now) whenever you change files,
+then reload twice. To force a clean re-read of the manifest, uninstall and
+reinstall the app.
