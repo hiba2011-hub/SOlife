@@ -31,6 +31,42 @@
   // Chrome/Edge/Samsung support the install prompt; Firefox & iOS Safari do not.
   var supportsPrompt = "onbeforeinstallprompt" in window;
 
+  /* Links tapped inside WhatsApp, Instagram, Facebook, Gmail, Telegram, LINE,
+   * TikTok etc. open in an in-app WebView or "Custom Tab". Those look identical
+   * to Chrome (same ⋮ button) but cannot install web apps at all, and Chrome
+   * hides the install entry there — which reads as "the option is missing" and
+   * "the Install button does nothing". Detecting it is the whole ball game. */
+  var IN_APP_NAMES = {
+    FBAN: "Facebook",
+    FBAV: "Facebook",
+    FB_IAB: "Facebook",
+    Instagram: "Instagram",
+    WhatsApp: "WhatsApp",
+    Line: "LINE",
+    Twitter: "X",
+    TikTok: "TikTok",
+    Snapchat: "Snapchat",
+    Pinterest: "Pinterest",
+    GSA: "the Google app",
+  };
+
+  function inAppBrowserName() {
+    var match = ua.match(
+      /(FBAN|FBAV|FB_IAB|Instagram|WhatsApp|Line|Twitter|TikTok|Snapchat|Pinterest|GSA)/i
+    );
+    if (match) {
+      var key = Object.keys(IN_APP_NAMES).filter(function (k) {
+        return k.toLowerCase() === match[1].toLowerCase();
+      })[0];
+      return IN_APP_NAMES[key] || "an in-app browser";
+    }
+    // Android WebViews: an explicit "wv" token, or no real Chrome version.
+    if (/\bwv\b/i.test(ua) || (isAndroid && !/Chrome\/\d+/i.test(ua))) {
+      return "an in-app browser";
+    }
+    return null;
+  }
+
   var deferredPrompt = null;
   var installed = isStandalone;
   var bannerDismissed = false;
@@ -338,6 +374,27 @@
   }
 
   function stepsForCurrentDevice() {
+    // Checked before everything else: inside a Custom Tab nothing else matters,
+    // and telling the user to "tap ⋮ → Install app" would just be wrong advice.
+    var inApp = inAppBrowserName();
+    if (inApp) {
+      return {
+        lead:
+          "You're viewing LifeOS inside " +
+          inApp +
+          ", which cannot install apps at all.",
+        steps: [
+          "Open your phone's Chrome app (not a link from a chat).",
+          "Type or paste this page's address into Chrome's address bar.",
+          "In Chrome, tap ⋮ → “Install app”.",
+          "If your ⋮ menu has “Open in Chrome”, tap that — it does the same job.",
+        ],
+        note:
+          "Android opens links from chat and social apps in a mini-browser so " +
+          "pages load instantly — but installing is blocked there by design, " +
+          "and the ⋮ menu has no install entry.",
+      };
+    }
     if (isIOS) {
       if (!/Safari/i.test(ua) || /CriOS|FxiOS|EdgiOS|OPiOS|GSA/i.test(ua)) {
         return {
