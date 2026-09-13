@@ -9,7 +9,7 @@
  *
  * When you ship a change, bump CACHE_VERSION so old caches are cleaned up.
  */
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v4";
 const CACHE = `lifeos-${CACHE_VERSION}`;
 
 const APP_SHELL = [

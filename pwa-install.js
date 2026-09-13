@@ -290,6 +290,12 @@
     }
 
     if (!banner) return;
+
+    // Be honest about what the button does: with no captured install event
+    // there is nothing to call, so it opens the instructions instead.
+    var bannerButton = banner.querySelector("[data-pwa-banner-install]");
+    if (bannerButton) bannerButton.textContent = deferredPrompt ? "Install" : "How to";
+
     if (canPromptNow() && !bannerDismissed && !bannerAlreadySeen()) {
       // Give the app a moment to paint before sliding the banner in.
       window.setTimeout(function () {
@@ -316,16 +322,17 @@
       "</div>" +
       '<p class="modal-note" data-pwa-help-lead></p>' +
       '<ol class="pwa-steps" data-pwa-steps></ol>' +
+      '<p class="modal-note pwa-help-note" data-pwa-help-note hidden></p>' +
       '<div class="form-actions"><button class="secondary-btn" type="button" data-pwa-close>Got it</button></div>' +
       "</div>";
 
     helpModal.addEventListener("click", function (event) {
       if (event.target === helpModal || event.target.closest("[data-pwa-close]")) {
-        helpModal.classList.remove("open");
+        closeInstallHelp();
       }
     });
     document.addEventListener("keydown", function (event) {
-      if (event.key === "Escape") helpModal.classList.remove("open");
+      if (event.key === "Escape") closeInstallHelp();
     });
     document.body.appendChild(helpModal);
   }
@@ -353,12 +360,16 @@
     }
     if (isAndroid) {
       return {
-        lead: "On Android you can install LifeOS from Chrome, Edge or Samsung Internet.",
+        lead: "Android installs LifeOS from Chrome's own menu — no need for an in-app button.",
         steps: [
-          "Tap the ⋮ menu in the top-right of the browser.",
+          "Tap the ⋮ menu in the top-right of Chrome.",
           "Choose “Install app” or “Add to Home screen”.",
           "Confirm — LifeOS opens full screen with its own icon.",
         ],
+        note:
+          "Don't see “Install app”? Reload this page once and check again. " +
+          "Chrome only offers one-tap install after it has cached the app, " +
+          "and it stays silent if LifeOS is already installed on this phone.",
       };
     }
     if (supportsPrompt) {
@@ -381,10 +392,14 @@
     };
   }
 
+  // Remembered so the banner can come back when the dialog is dismissed.
+  var bannerHiddenForHelp = false;
+
   function openInstallHelp() {
     if (!helpModal) buildHelpModal();
     var info = stepsForCurrentDevice();
     helpModal.querySelector("[data-pwa-help-lead]").textContent = info.lead;
+
     var list = helpModal.querySelector("[data-pwa-steps]");
     list.innerHTML = "";
     info.steps.forEach(function (step) {
@@ -392,7 +407,29 @@
       li.textContent = step;
       list.appendChild(li);
     });
+
+    var note = helpModal.querySelector("[data-pwa-help-note]");
+    if (note) {
+      note.textContent = info.note || "";
+      note.hidden = !info.note;
+    }
+
+    // The banner duplicates the dialog's call to action, and it used to float
+    // on top of the dimmed backdrop. Take it down while the dialog is open.
+    if (banner && banner.classList.contains("show")) {
+      bannerHiddenForHelp = true;
+      banner.classList.remove("show");
+    }
     helpModal.classList.add("open");
+  }
+
+  function closeInstallHelp() {
+    if (!helpModal) return;
+    helpModal.classList.remove("open");
+    if (bannerHiddenForHelp) {
+      bannerHiddenForHelp = false;
+      if (banner && !installed && !bannerDismissed) banner.classList.add("show");
+    }
   }
 
   /* ------------------------------------------------------- deep links -- */

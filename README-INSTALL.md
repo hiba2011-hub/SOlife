@@ -75,3 +75,75 @@ Then open <http://localhost:8080>.
 - **Data** lives in `localStorage` on each device. Installing does not move data
   between devices, and clearing browser data clears the app data — use
   Settings → Export for backups.
+
+## Troubleshooting
+
+### The OS window buttons sit on top of the app header (desktop)
+
+**Fixed.** An earlier build listed `window-controls-overlay` in the manifest's
+`display_override`. That mode asks the OS to draw its own title bar over the web
+page, which covered the profile/theme buttons in the header. The manifest now
+requests plain `standalone`, and `life.css` additionally reserves the title-bar
+strip in case an older cached manifest is still in use.
+
+**Already installed?** The manifest is cached per installed app, so you have to
+pick up the new one:
+
+1. Close the installed app.
+2. Uninstall it (right-click the taskbar/dock icon → Uninstall, or
+   `chrome://apps` → right-click → Remove).
+3. Open the GitHub Pages URL again and install it fresh.
+
+A push alone will not change an already-installed window's chrome.
+
+### The app looks stale after you push changes
+
+The service worker caches assets on purpose so the app works offline. Bump
+`CACHE_VERSION` in `sw.js` (`"v3"` right now) with every release, then reload
+twice. If a version is waiting, the in-app **Update** bar appears — click it.
+
+### Install prompt never shows
+
+Check, in order:
+
+1. The URL is `https://` or `http://localhost` — never `file://`.
+2. GitHub Pages is actually enabled: repo → **Settings → Pages** → *Deploy from
+   a branch* → `main` / `/ (root)`. Pushing files alone does not publish a site.
+3. The manifest is reachable at `<your-url>/manifest.json` and returns JSON.
+4. On a free GitHub plan, **Pages only works on public repositories.**
+
+### Data does not appear in the installed app
+
+Each origin has its own storage. `http://localhost:8080` and
+`https://you.github.io/…` are different origins with separate data, and an
+installed app does not share storage with a tab open in another browser. Export
+from Settings before switching, then import on the new origin.
+
+### Android: the Install button shows instructions instead of installing
+
+This is **not** a failure — it is Chrome declining to offer its one-tap install
+*on that page load*. Chrome only fires `beforeinstallprompt` when it has already
+cached the app, and it deliberately stays silent when LifeOS is **already
+installed** on the phone.
+
+The reliable path on Android is Chrome's own menu, which always works:
+
+> **⋮** (top-right of Chrome) → **Install app** or **Add to Home screen**
+
+The in-app dialog says exactly this, and the button now reads **"How to"** rather
+than **"Install"** when no one-tap prompt has been captured — so it never
+promises an install it cannot perform.
+
+If Chrome's menu has no *Install app* entry:
+
+1. Reload the page once and look again (first load caches the app).
+2. Check the app drawer — LifeOS may already be installed from an earlier try.
+3. Open the URL in a normal tab, not an in-app browser (opening from WhatsApp,
+   Instagram, Facebook, etc. runs a WebView where installation is blocked).
+
+### A PWA banner covered an in-app dialog
+
+**Fixed.** The install banner used `z-index: 65` while the app's own modal
+backdrop uses `z-index: 50`, so the banner floated above every dialog in LifeOS.
+The banner and update bar are now `45` / `46`, and the banner is taken down while
+the instructions dialog is open (restored when it closes).
