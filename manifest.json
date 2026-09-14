@@ -1,9 +1,9 @@
 {
-  "id": "./",
+  "id": "./index.html",
   "name": "LifeOS — Personal Operating System",
   "short_name": "LifeOS",
   "description": "Your life, organized — dashboard, habits, study, money, journal, outfits and more, all on your device.",
-  "start_url": "./",
+  "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],

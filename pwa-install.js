@@ -29,7 +29,7 @@
     (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
   var isAndroid = /Android/i.test(ua);
   // Chrome/Edge/Samsung support the install prompt; Firefox & iOS Safari do not.
-  var supportsPrompt = "onbeforeinstallprompt" in window;
+  var supportsPrompt = "onbeforeinstallprompt" in window || /Android/i.test(ua);
 
   /* Links tapped inside WhatsApp, Instagram, Facebook, Gmail, Telegram, LINE,
    * TikTok etc. open in an in-app WebView or "Custom Tab". Those look identical
@@ -68,6 +68,7 @@
   }
 
   var deferredPrompt = null;
+  var promptSeen = false;
   var installed = isStandalone;
   var bannerDismissed = false;
 
@@ -155,6 +156,7 @@
   /* ------------------------------------------------------------- prompt -- */
 
   window.addEventListener("beforeinstallprompt", function (event) {
+    promptSeen = true;
     // Stop the browser's own mini-infobar so our UI owns the moment.
     event.preventDefault();
     deferredPrompt = event;
@@ -319,7 +321,9 @@
           copy.textContent = "Add LifeOS to your home screen from the Share menu.";
           action.textContent = "How to";
         } else {
-          copy.textContent = "Add LifeOS to your home screen and use it offline.";
+          copy.textContent = isAndroid && !promptSeen
+            ? "Chrome has not exposed its install prompt on this device yet."
+            : "Add LifeOS to your home screen and use it offline.";
           action.textContent = "How to";
         }
       }
@@ -417,16 +421,17 @@
     }
     if (isAndroid) {
       return {
-        lead: "Android installs LifeOS from Chrome's own menu — no need for an in-app button.",
+        lead: "LifeOS is ready to be installed when Chrome exposes its Android install menu.",
         steps: [
-          "Tap the ⋮ menu in the top-right of Chrome.",
-          "Choose “Install app” or “Add to Home screen”.",
-          "Confirm — LifeOS opens full screen with its own icon.",
+          "Open this page directly in the Google Chrome app (not inside WhatsApp, Google, or another app).",
+          "Tap Chrome's ⋮ menu in the top-right.",
+          "Choose “Install app”. If that wording is absent, look for “Add to Home screen” or “Install and create shortcut”.",
+          "Confirm the installation, then open LifeOS from your home screen or app drawer.",
         ],
         note:
-          "Don't see “Install app”? Reload this page once and check again. " +
-          "Chrome only offers one-tap install after it has cached the app, " +
-          "and it stays silent if LifeOS is already installed on this phone.",
+          "If none of those menu items exists, Chrome has not marked this site installable on this device yet. " +
+          "Update Chrome, open LifeOS over HTTPS, reload once, and check the menu again. " +
+          "The website cannot force Chrome to display a missing system menu item.",
       };
     }
     if (supportsPrompt) {
